@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第四堂課｜名片分類與歸檔</title>
+  <style>
+    :root { --ink:#172033; --muted:#65728a; --blue:#1f4e78; --blue2:#eaf3fb; --line:#dce5ef; --green:#35611f; --green-bg:#edf7e8; --white:#fff; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#f5f7fa; color:var(--ink); font-family:Arial,"Noto Sans TC","Microsoft JhengHei",sans-serif; }
+    .shell { max-width:1800px; margin:0 auto; padding:28px 24px 48px; }
+    .hero { display:flex; justify-content:space-between; gap:24px; align-items:flex-end; margin-bottom:22px; }
+    h1 { margin:0; font-size:clamp(26px,3vw,40px); letter-spacing:.02em; }
+    .subtitle { margin:10px 0 0; color:var(--muted); line-height:1.65; }
+    .excel-link { display:inline-flex; align-items:center; justify-content:center; min-height:42px; padding:0 16px; border-radius:9px; background:var(--blue); color:#fff; text-decoration:none; white-space:nowrap; font-weight:700; }
+    .summary { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:18px; }
+    .stat { background:var(--white); border:1px solid var(--line); border-radius:12px; padding:13px 18px; min-width:130px; box-shadow:0 2px 7px rgba(19,37,63,.04); }
+    .stat strong { display:block; font-size:25px; color:var(--blue); }
+    .stat span { color:var(--muted); font-size:13px; }
+    .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:18px 0; }
+    .search { flex:1 1 320px; min-height:44px; border:1px solid var(--line); border-radius:9px; padding:0 14px; font-size:16px; background:#fff; color:var(--ink); }
+    .filter { min-height:42px; padding:0 15px; border:1px solid #b9cadd; border-radius:9px; background:#fff; color:var(--blue); cursor:pointer; font-weight:700; }
+    .filter.active, .filter:hover { background:var(--blue); color:#fff; border-color:var(--blue); }
+    .result-note { color:var(--muted); font-size:14px; margin-left:auto; }
+    .table-wrap { overflow:auto; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 3px 12px rgba(19,37,63,.06); }
+    table { width:100%; min-width:1500px; border-collapse:separate; border-spacing:0; }
+    thead th { position:sticky; top:0; z-index:1; background:var(--blue); color:#fff; text-align:left; font-size:14px; padding:13px 12px; white-space:nowrap; }
+    tbody td { padding:13px 12px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.5; font-size:14px; }
+    tbody tr:nth-child(even) { background:#f8fbfd; }
+    tbody tr:hover { background:#edf6fc; }
+    td.num, td.category { text-align:center; white-space:nowrap; }
+    .category span { display:inline-block; padding:4px 9px; border-radius:999px; background:var(--green-bg); color:var(--green); font-weight:700; }
+    a { color:#1b5d91; }
+    .empty { display:none; padding:36px; text-align:center; color:var(--muted); }
+    .footer { margin-top:15px; color:var(--muted); font-size:13px; line-height:1.6; }
+    @media (max-width:720px) {
+      .shell { padding:20px 13px 34px; }
+      .hero { display:block; }
+      .excel-link { margin-top:16px; }
+      .result-note { margin-left:0; width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <h1>第四堂課｜名片分類與歸檔</h1>
+        <p class="subtitle">離線名片查詢頁面。可依姓名、公司、職稱、電話、電子郵件或地址搜尋，也可用分類快速篩選。</p>
+      </div>
+      <a class="excel-link" href="outputs/04_business_cards/第四堂課_名片分類.xlsx">開啟 Excel 分類表</a>
+    </section>
+
+    <section class="summary" aria-label="分類統計">
+      <div class="stat"><strong id="totalCount">9</strong><span>全部名片</span></div>
+      <div class="stat"><strong id="architectCount">3</strong><span>建築師</span></div>
+      <div class="stat"><strong id="ownerCount">6</strong><span>業主</span></div>
+    </section>
+
+    <section class="controls" aria-label="搜尋與篩選">
+      <input id="search" class="search" type="search" placeholder="搜尋姓名、公司、職稱、電話、地址或電子郵件…" autocomplete="off">
+      <button class="filter active" data-category="全部">全部</button>
+      <button class="filter" data-category="建築師">建築師</button>
+      <button class="filter" data-category="業主">業主</button>
+      <span id="resultNote" class="result-note"></span>
+    </section>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>序號</th><th>姓名</th><th>公司</th><th>職稱</th><th>分類</th>
+            <th>電話</th><th>傳真</th><th>手機</th><th>電子郵件</th><th>地址</th>
+            <th>網址</th><th>統一編號</th><th>歸檔資料夾</th><th>名片影像</th>
+          </tr>
+        </thead>
+        <tbody id="cardsBody"></tbody>
+      </table>
+      <div id="empty" class="empty">找不到符合條件的名片。</div>
+    </div>
+
+    <p class="footer">資料來源為第四堂課名片影像；「九福建築師事務所」名片未標示個人姓名，已依名片內容註記為未標示。</p>
+  </main>
+
+  <script>
+    const cards = [
+      { no:1, name:"陳紀妍", company:"南山人壽保險股份有限公司", title:"業務主任", category:"業主", phone:"03-5311107", fax:"03-5311436", mobile:"0925-158-568", email:"don789g@yahoo.com.tw", address:"30054 新竹市東大路二段110號5樓之2", website:"http://www.nanshanlife.com.tw", tax:"11456006", folder:"業主", image:"業主/Scan20260511_183043(1).jpg" },
+      { no:2, name:"吳文忠（育丞）", company:"台灣自來水公司第二區管理處", title:"副處長", category:"業主", phone:"(03)464-3131#202", fax:"(03)464-3135", mobile:"0912-223257", email:"h485@mail.water.gov.tw", address:"324 桃園市平鎮區水廠路150號", website:"", tax:"", folder:"業主", image:"業主/Scan20260511_183043(2).jpg" },
+      { no:3, name:"謝欣雄", company:"KoMiCo Technology Taiwan Ltd.", title:"資深廠務經理（管理部）", category:"業主", phone:"03-597-2988 分機123", fax:"03-597-2188", mobile:"0933-976-646", email:"Jason.Hsieh@komico.com", address:"303 新竹縣湖口鄉實踐路14號", website:"http://www.komico.com", tax:"28124684", folder:"業主", image:"業主/Scan20260511_183043(3).jpg" },
+      { no:4, name:"未標示", company:"九福建築師事務所", title:"建築師／事務所", category:"建築師", phone:"05-5328108", fax:"05-5321108", mobile:"", email:"joefu.archi@gmail.com", address:"雲林縣斗六市成功路569號", website:"", tax:"38913272", folder:"建築師", image:"建築師/Scan20260512_102051(1).jpg" },
+      { no:5, name:"江堅龍", company:"江堅龍建築師事務所", title:"建築師", category:"建築師", phone:"(02)8797-3567#2539", fax:"(02)8797-3276", mobile:"", email:"clc25@ceci.com.tw", address:"台北市內湖區陽光街323號1樓", website:"", tax:"", folder:"建築師", image:"建築師/Scan20260512_102051(2).jpg" },
+      { no:6, name:"蔡仁毅", company:"蔡仁毅建築師事務所", title:"負責人／建築師", category:"建築師", phone:"(02)2345 8707", fax:"(02)2345 8707", mobile:"0937 911 858", email:"jybear.tsai@msa.hinet.net", address:"110 台北市信義區和平東路3段323號7樓", website:"", tax:"", folder:"建築師", image:"建築師/Scan20260512_102051(3).jpg" },
+      { no:7, name:"俞翰蒼", company:"詮力實業股份有限公司", title:"一級專員", category:"業主", phone:"(02)2726-8558", fax:"(02)2726-8158", mobile:"0972 061 551", email:"ji394su3@chuanli.com.tw", address:"110 台北市信義區松德路161號11樓之1", website:"", tax:"43794487", folder:"業主", image:"業主/Scan20260512_102051(4).jpg" },
+      { no:8, name:"鄭子傑", company:"傳真機構（Virtuosi Real Estate）", title:"副總經理", category:"業主", phone:"+886 2 2777-1288", fax:"+886 2 2777-1211", mobile:"+886 931 393 717", email:"chengtzuchieh@gmail.com", address:"台北市市民大道四段100號15樓", website:"", tax:"", folder:"業主", image:"業主/Scan20260512_102051(5).jpg" },
+      { no:9, name:"龔榮堂", company:"國立體育大學", title:"體育長／Professor & Director", category:"業主", phone:"886-3-3283201 ext.5005", fax:"886-3-397-2904", mobile:"0921-336730", email:"kung@ntsu.edu.tw", address:"333325 桃園市龜山區文化一路250號", website:"", tax:"02612744", folder:"業主", image:"業主/Scan20260511_183043(5).jpg" }
+    ];
+
+    let selectedCategory = "全部";
+    const body = document.getElementById("cardsBody");
+    const search = document.getElementById("search");
+    const resultNote = document.getElementById("resultNote");
+    const empty = document.getElementById("empty");
+
+    const esc = (value) => String(value || "").replace(/[&<>'"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[c]));
+    const digits = (value) => String(value || "").replace(/[^0-9+]/g, "");
+    const phoneCell = (value) => value ? `<a href="tel:${digits(value)}">${esc(value)}</a>` : "—";
+    const emailCell = (value) => value ? `<a href="mailto:${esc(value)}">${esc(value)}</a>` : "—";
+    const websiteCell = (value) => value ? `<a href="${esc(value)}" target="_blank" rel="noopener">開啟網站</a>` : "—";
+
+    function render() {
+      const query = search.value.trim().toLowerCase();
+      const filtered = cards.filter((card) => {
+        const matchesCategory = selectedCategory === "全部" || card.category === selectedCategory;
+        const searchable = Object.values(card).join(" ").toLowerCase();
+        return matchesCategory && (!query || searchable.includes(query));
+      });
+      body.innerHTML = filtered.map((card) => `
+        <tr>
+          <td class="num">${card.no}</td>
+          <td>${esc(card.name)}</td>
+          <td>${esc(card.company)}</td>
+          <td>${esc(card.title)}</td>
+          <td class="category"><span>${esc(card.category)}</span></td>
+          <td>${phoneCell(card.phone)}</td>
+          <td>${phoneCell(card.fax)}</td>
+          <td>${phoneCell(card.mobile)}</td>
+          <td>${emailCell(card.email)}</td>
+          <td>${esc(card.address)}</td>
+          <td>${websiteCell(card.website)}</td>
+          <td>${esc(card.tax) || "—"}</td>
+          <td>${esc(card.folder)}</td>
+          <td><a href="${encodeURI(card.image)}" target="_blank" rel="noopener">開啟名片</a></td>
+        </tr>`).join("");
+      empty.style.display = filtered.length ? "none" : "block";
+      resultNote.textContent = `顯示 ${filtered.length} / ${cards.length} 筆`;
+    }
+
+    document.querySelectorAll(".filter").forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedCategory = button.dataset.category;
+        document.querySelectorAll(".filter").forEach((item) => item.classList.toggle("active", item === button));
+        render();
+      });
+    });
+    search.addEventListener("input", render);
+    render();
+  </script>
+</body>
+</html>
